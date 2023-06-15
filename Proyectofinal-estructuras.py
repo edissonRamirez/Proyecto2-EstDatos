@@ -47,7 +47,7 @@ class GUI:
         BuscarA.pack(side='left', padx=5)
         EliminarA= Button(self.ventana, text="Eliminar Aeropuerto", command=self.formulario_eliminar)
         EliminarA.pack(side='left', padx=5)
-        EditarA= Button(self.ventana, text="Editar Aeropuerto", command=self.editar_aeropuerto)
+        EditarA= Button(self.ventana, text="Editar Aeropuerto", command=self.formulario_editar_aero)
         EditarA.pack(side='left', padx=5)
         CrearT= Button(self.ventana, text="Crear Trayecto", command=self.open_trayecto)
         CrearT.pack(side='left', padx=5)
@@ -60,9 +60,9 @@ class GUI:
 
         self.ventana.mainloop()
         
-    def guardar_origen(self,name):#guarda el origen del trayecto seleccionado en open_trayecto
+    def guardar_origen(self,name):#guarda el origen del trayecto seleccionado en nombre_trayecto
         self.nombre_origen=name
-    def guardar_destino(self,name):#guarda el destino del trayecto selleccionado en open_trayecto
+    def guardar_destino(self,name):#guarda el destino del trayecto seleccionado en open_trayecto
         self.nombre_destino=name
         
     def guardar_color(self,color):#guarda el color del aeropuerto seleccionado en open_trayecto
@@ -401,51 +401,103 @@ class GUI:
             nombre = atributos['nombre']
             self.crear_circulo(x, y, color, nombre)
 
-    def editar_aeropuerto(self, nombre, nuevo_x, nuevo_y):
-        self.grafo.nodes[nombre]['x'] = nuevo_x
-        self.grafo.nodes[nombre]['y'] = nuevo_y
-        self.actualizar_lienzo()
+    def editar_aeropuerto(self):
 
-        formulario = Toplevel(self.ventana)
-        formulario.title("Editar Aeropuerto")
+        aeropuerto=self.nombre_origen
         
-        # Etiqueta y campo de entrada para el nombre del aeropuerto
-        nombre_label = Label(formulario, text="Nombre del Aeropuerto:")
-        nombre_label.pack()
-        nombre_entry = Entry(formulario)
-        nombre_entry.pack()
+        # De x hasta y uno son los calores que debe tomar el circulo para formarse
+        x=int(self.pos_x_entry.get())-30
+        y=int(self.pos_y_entry.get())-30
+        x1=int(self.pos_x_entry.get())+30
+        y1=int(self.pos_y_entry.get())+30
 
-        # Etiqueta y campo de entrada para la nueva coordenada 'x'
-        x_label = Label(formulario, text="Nueva coordenada 'x':")
-        x_label.pack()
-        x_entry = Entry(formulario)
-        x_entry.pack()
+        if aeropuerto in self.grafo:
+        # Busca el primer punto en x del circulo anterior
 
-        # Etiqueta y campo de entrada para la nueva coordenada 'y'
-        y_label = Label(formulario, text="Nueva coordenada 'y':")
-        y_label.pack()
-        y_entry = Entry(formulario)
-        y_entry.pack()
+            x0 = self.grafo.nodes[aeropuerto]['x']
+            self.grafo.nodes[aeropuerto]['x'] = int(self.pos_x_entry.get())
+            self.grafo.nodes[aeropuerto]['y'] = int(self.pos_y_entry.get())
 
-    
-    def editar_ruta(self, origen, destino, duracion, distancia):
+        #busca el circulo con ese mismo punto inicial en x
+        for circulo in self.circulos:
+            if(self.canvas.coords(circulo)[0]==x0-30):
+                self.canvas.coords(circulo,x,y,x1,y1)
+        #busca el texto con ese mismo punto inicial en x
+        for texto in self.Textos:
+            if(self.canvas.itemcget(texto, "text")==aeropuerto):
+                self.canvas.coords(texto, self.pos_x_entry.get(),self.pos_y_entry.get())
+                self.formulario.destroy()
+        for linea in self.lineas:
+            x3=self.canvas.coords(linea)[0]
+            y3=self.canvas.coords(linea)[1]
+            x2=self.canvas.coords(linea)[2]
+            y2=self.canvas.coords(linea)[3]
+            print(self.canvas.coords(linea)[0],x1)
+            print(self.canvas.coords(linea)[2],x2)
+            if(self.canvas.coords(linea)[0]==x0+30):
+                self.canvas.coords(linea,x+30,y+30,x2,y2)
+                self.formulario.destroy()
+            if(self.canvas.coords(linea)[2]==x0+30):
+                self.canvas.coords(linea,x3,y3,x+30,y+30)
+                self.formulario.destroy()
+
+    def editar_trayecto(self):
+
+        origen = self.nombre_origen()
+
+    def formulario_editar_aero(self):# formulario para editar la posicion de un aeropuerto
+        self.formulario = Toplevel(self.ventana)
+        self.formulario.title("Editar aeropuerto")
+
+        lista=self.lista_Nombres# lista de los nombres de los aeropuertos
+        letrero = Label(self.formulario, text="Aeropuerto")
+        letrero.pack()
         
-        self.grafo.edges[origen, destino]['duracion'] = duracion
-        self.grafo.edges[origen, destino]['distancia'] = distancia
+        opciones = StringVar(self.formulario)
+        opciones.set('Ninguno')
+        opcion_menu = OptionMenu(self.formulario, opciones, *lista, command=seleccionar_origen)# menu de opciones de origen
+        opcion_menu.pack()#primera opcion
+        
+        pos_x_label = Label(self.formulario, text="Posición X:")
+        pos_x_label.pack()
+        self.pos_x_entry = Entry(self.formulario)#guarda la posicion en x del aeropuerto
+        self.pos_x_entry.pack()
 
-        # Actualizar el lienzo gráfico
-        self.actualizar_lienzo()
+        pos_y_label = Label(self.formulario, text="Posición Y:")
+        pos_y_label.pack()
+        self.pos_y_entry = Entry(self.formulario)#guarda la posicion en y del aeropuerto
+        self.pos_y_entry.pack()
+        submit_button = Button(self.formulario, text="Editar", command=self.editar_aeropuerto)
+        submit_button.pack()
 
-    def formulario_editar_aeropuerto(self):
-        formulario = Toplevel(self.ventana)
+    def formulario_editar_trayecto(self):
+        self.formulario = Toplevel(self.ventana)
+        self.formulario.title("Editar trayecto")
 
+        lista=self.lista_Nombres # lista de los nombres de las rutas
+        letrero = Label(self.formulario, text="Trayecto")
+        letrero.pack()
+        opciones = StringVar(self.formulario)
+        opciones.set(lista[0])#primera opcion
+        opcion_menu = OptionMenu(self.formulario, opciones, *lista, command=seleccionar_origen)# menu de opciones del los aeropuertos de origen disponibles
+        opcion_menu.pack()
+        
+        opciones = StringVar(self.formulario)
+        opciones.set(lista[0])#primera opcion
+        opcion_menu = OptionMenu(self.formulario, opciones, *lista, command=seleccionar_destino)# menu de opciones de los aeropuertos de destino disponibles
+        opcion_menu.pack()
 
-    
-    # def formulario_editar_aeropuerto(self):
+        pos_x_label = Label(self.formulario, text="Duraccion")
+        pos_x_label.pack()
+        self.duracion = Entry(self.formulario)#guarda la duraccion del trayecto especificado
+        self.duracion.pack()
 
+        pos_y_label = Label(self.formulario, text="Distacia:")
+        pos_y_label.pack()
+        self.distancia = Entry(self.formulario)#guarda la la distancia del trayecto
+        self.distancia.pack()
+        submit_button = Button(self.formulario, text="Editar", command=self.editar_ruta)
+        submit_button.pack()
 
-    #     # Botón para editar el aeropuerto
-    #     editar_button = Button(formulario, text="Editar", command=lambda: self.editar_aeropuerto(nombre_entry.get(), x_entry.get(), y_entry.get()))
-    #     editar_button.pack()
 
 gui = GUI()
