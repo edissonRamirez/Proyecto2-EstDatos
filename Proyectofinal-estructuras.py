@@ -405,7 +405,7 @@ class GUI:
 
         aeropuerto=self.nombre_origen
         
-        # De x hasta y uno son los calores que debe tomar el circulo para formarse
+        # De x hasta y uno son los colores que debe tomar el circulo para formarse
         x=int(self.pos_x_entry.get())-30
         y=int(self.pos_y_entry.get())-30
         x1=int(self.pos_x_entry.get())+30
@@ -442,8 +442,23 @@ class GUI:
                 self.formulario.destroy()
 
     def editar_trayecto(self):
+        origen = self.nombre_origen
 
-        origen = self.nombre_origen()
+        # nuevo_destino = self.destino_entry.get()
+        nueva_duracion = self.duracion.get()
+        nueva_distancia = self.distancia.get()
+
+        if trayecto in self.grafo.edges:
+            self.grafo.edges[trayecto]['destino'] = nuevo_destino
+            self.grafo.edges[trayecto]['duracion'] = nueva_duracion
+            self.grafo.edges[trayecto]['distancia'] = nueva_distancia
+
+            for linea in self.lineas:
+                if self.canvas.itemcget(linea, "tags") == trayecto:
+                    self.canvas.itemconfigure(linea, tags=nuevo_destino)
+                    break
+
+        self.formulario.destroy()
 
     def formulario_editar_aero(self):# formulario para editar la posicion de un aeropuerto
         self.formulario = Toplevel(self.ventana)
@@ -475,24 +490,25 @@ class GUI:
         self.formulario.title("Editar trayecto")
 
         lista=self.lista_Nombres # lista de los nombres de las rutas
+
         letrero = Label(self.formulario, text="Trayecto")
         letrero.pack()
         opciones = StringVar(self.formulario)
-        opciones.set(lista[0])#primera opcion
+        opciones.set('Ninguno') # primera opcion formulario origenes
         opcion_menu = OptionMenu(self.formulario, opciones, *lista, command=seleccionar_origen)# menu de opciones del los aeropuertos de origen disponibles
         opcion_menu.pack()
         
         opciones = StringVar(self.formulario)
-        opciones.set(lista[0])#primera opcion
+        opciones.set('ninguno')#primera opcion formulario destinos
         opcion_menu = OptionMenu(self.formulario, opciones, *lista, command=seleccionar_destino)# menu de opciones de los aeropuertos de destino disponibles
         opcion_menu.pack()
 
-        pos_x_label = Label(self.formulario, text="Duraccion")
+        pos_x_label = Label(self.formulario, text="Duración")
         pos_x_label.pack()
         self.duracion = Entry(self.formulario)#guarda la duraccion del trayecto especificado
         self.duracion.pack()
 
-        pos_y_label = Label(self.formulario, text="Distacia:")
+        pos_y_label = Label(self.formulario, text="Distancia:")
         pos_y_label.pack()
         self.distancia = Entry(self.formulario)#guarda la la distancia del trayecto
         self.distancia.pack()
