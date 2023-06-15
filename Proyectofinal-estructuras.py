@@ -17,7 +17,10 @@ class GUI:
     def __init__(self):
         self.grafo = nx.Graph()
         self.lista_Nombres=[]
+        self.lista_Cambiar=[]
         self.lista_Nombres_Trayectos=[]
+        self.duracion = 0
+        self.distancia = 0    
         self.circulos=[]# lista donde se guardan los circulos del cambas
         self.lineas=[ ]#lista donde se guardan las lineas del cambas
         self.Textos=[]#Guarda los textos de los aeropuertos
@@ -37,17 +40,49 @@ class GUI:
         color = "blue"
         pos_x = self.canvas_width // 2
         pos_y = self.canvas_height // 2
-        texto = "Aeropuerto 1"
+        texto1 = "Aerop 1"
         
-        self.crear_circulo(pos_x, pos_y, color, texto)
-
+        self.crear_circulo(pos_x, pos_y, color, texto1)
+        
+        color = "orange"
+        pos_x =300
+        pos_y = 100
+        texto2 = "Aero 2"
+        
+        self.crear_circulo(pos_x, pos_y, color, texto2)
+        
+        color = "black"
+        pos_x = 302
+        pos_y = 302
+        texto3 = "Aero 3"
+        self.crear_circulo(pos_x, pos_y, color, texto3)
+        
+        color = "black"
+        pos_x = 700
+        pos_y = 103
+        texto4 = "Aero 4"
+        self.crear_circulo(pos_x, pos_y, color, texto4)
+        
+        color = "black"
+        pos_x = 701
+        pos_y = 303
+        texto5 = "Aero 5"
+        self.crear_circulo(pos_x, pos_y, color, texto5)
+        
+        self.crear_linea(texto1,texto2,300.0,40.0)
+        self.crear_linea(texto2,texto3,300.0,40.0)
+        self.crear_linea(texto3,texto1,300.0,40.0)
+        self.crear_linea(texto4,texto2,300.0,40.0)
+        self.crear_linea(texto1,texto4,300.0,40.0)
+        self.crear_linea(texto5,texto3,300.0,40.0)
+        
         CrearA= Button(self.ventana, text="Agregar Aeropuerto", command=self.open_form)
         CrearA.pack(side='left', padx=5)
         BuscarA= Button(self.ventana, text="Buscar Aeropuerto", command=self.Buscar_Aero)
         BuscarA.pack(side='left', padx=5)
         EliminarA= Button(self.ventana, text="Eliminar Aeropuerto", command=self.formulario_eliminar)
         EliminarA.pack(side='left', padx=5)
-        EditarA= Button(self.ventana, text="Editar Aeropuerto", command=self.formulario_editar_aero)
+        EditarA= Button(self.ventana, text="Editar Aeropuerto",command=self.formulario_editar_aero)
         EditarA.pack(side='left', padx=5)
         CrearT= Button(self.ventana, text="Crear Trayecto", command=self.open_trayecto)
         CrearT.pack(side='left', padx=5)
@@ -55,14 +90,14 @@ class GUI:
         BuscarT.pack(side='left', padx=5)
         EliminarT= Button(self.ventana, text="Eliminar Trayecto",command=self.formulario_eliminar_trayecto)
         EliminarT.pack(side='left', padx=5)
-        Editart= Button(self.ventana, text="Editar trayecto")
+        Editart= Button(self.ventana, text="Editar trayecto", command=self.formulario_editar_trayecto)
         Editart.pack(side='left', padx=5)
 
         self.ventana.mainloop()
         
-    def guardar_origen(self,name):#guarda el origen del trayecto seleccionado en nombre_trayecto
+    def guardar_origen(self,name):#guarda el origen del trayecto seleccionado en open_trayecto
         self.nombre_origen=name
-    def guardar_destino(self,name):#guarda el destino del trayecto seleccionado en open_trayecto
+    def guardar_destino(self,name):#guarda el destino del trayecto selleccionado en open_trayecto
         self.nombre_destino=name
         
     def guardar_color(self,color):#guarda el color del aeropuerto seleccionado en open_trayecto
@@ -108,14 +143,13 @@ class GUI:
         opcion_menu = OptionMenu(self.formulario, opciones, *lista, command=seleccionar_destino)# menu de opciones de destino
         opcion_menu.pack()
         
-        submit_button = Button(self.formulario, text="Señalar", command=self.señalar_trayecto)
+        submit_button = Button(self.formulario, text="Señalar", command=self.ruta_mejor)
         submit_button.pack()
         submit_button = Button(self.formulario, text="Cerrar", command=self.cerrar_trayecto)
         submit_button.pack()
     
     def Señalar_Aero(self):# cambia el color del aeropuerto para asi encontrarlo visualmente
         nombre=self.nombre_origen
-        estado = False  # Inicializar estado como False
         if nombre in self.grafo:
             x = self.grafo.nodes[nombre]['x']
             self.cambiar_color(x)
@@ -129,23 +163,103 @@ class GUI:
             letrero.pack(side='left')
         else:
             self.show_error_window("El aeropuerto no existe")
-
-    def señalar_trayecto(self):# cambia el color de la linea de trayecto para asi identificarla
+    def ruta_mejor (self):
         origen=self.nombre_origen
-        destino=self.nombre_destino
-        if origen in self.grafo:
-            x1 = self.grafo.nodes[origen]['x']
-        if destino in self.grafo:
-            x2 = self.grafo.nodes[destino]['x']
-        self.cambiar_color_trayecto(x1, x2)
+        origen1=self.nombre_origen
+        destino1=self.nombre_destino
+        destino2=self.nombre_destino
+        self.señalar_trayecto(origen,origen1,destino1,destino2)
+        letrero3= Label(self.formulario, text="Duracion")
+        letrero3.pack()
+        letrero3= Label(self.formulario, text=self.duracion)
+        letrero3.pack()
+        letrero3= Label(self.formulario, text="Distancia")
+        letrero3.pack()
+        letrero3= Label(self.formulario, text=self.distancia)
+        letrero3.pack()
+        
+    def contenido(self, nombre1, nombre2):
+        if nombre1 in self.grafo:
+            x1 = int(self.grafo.nodes[nombre1]['x'])
+            y1 = int(self.grafo.nodes[nombre1]['y'])
+        if nombre2 in self.grafo:
+            x2 =int(self.grafo.nodes[nombre2]['x'])
+            y2 =int(self.grafo.nodes[nombre2]['y'])
+        self.cambiar_color_trayecto(x2,x1,y2,y1)
+    def suma (self,duracion, distancia):
+        duracion=int(duracion)
+        distancia=int(distancia)
+        x=int(self.duracion)
+        z=int(self.distancia)
+        self.duracion=x+duracion
+        self.distancia=z+distancia
+    def señalar_trayecto(self,origen,origen1,destino, final):# cambia el color de la linea de trayecto para asi identificarla
+        valor=True
+        if self.grafo.has_edge(origen, destino)==False:
+            trayectos = [(origen, destino1) for destino1 in self.grafo.neighbors(origen)]
+            for trayecto in trayectos:
+                for trayecto1 in trayectos:
+                    if self.grafo.has_edge(trayecto1[1], final):
+                        self.contenido(trayecto1[1], final)
+                        datos_arista = self.grafo.get_edge_data(trayecto1[1], final)
+                        self.suma(int(datos_arista['duracion']), datos_arista['distancia'])
+                        self.contenido(trayecto1[0],trayecto1[1])
+                        datos_arista = self.grafo.get_edge_data(trayecto1[0],trayecto1[1])
+                        self.suma(int(datos_arista['duracion']), datos_arista['distancia'])
+                        valor=False
+                        return None
+                if(valor):
+                    trayectos2 = [(trayecto[1], destino2) for destino2 in self.grafo.neighbors(trayecto[1])]
+                    for trayecto2 in trayectos2:
+                        for trayecto4 in trayectos2:
+                            if self.grafo.has_edge(trayecto4[1], final):
+                                self.contenido(trayecto4[1], final)
+                                datos_arista = self.grafo.get_edge_data(trayecto4[1], final)
+                                self.suma(int(datos_arista['duracion']), datos_arista['distancia'])
+                                self.contenido(trayecto4[0],trayecto4[1])
+                                datos_arista = self.grafo.get_edge_data(trayecto4[0],trayecto2[1])
+                                self.suma(int(datos_arista['duracion']), datos_arista['distancia'])
+                                self.contenido(trayecto[0],trayecto[1])
+                                datos_arista = self.grafo.get_edge_data(trayecto[0],trayecto[1])
+                                self.suma(int(datos_arista['duracion']), datos_arista['distancia'])
+                                valor=False
+                                return None
+                        if(trayecto2[1]==final and valor):
+                            self.contenido(trayecto2[0],trayecto2[1])
+                            datos_arista = self.grafo.get_edge_data(trayecto2[0],trayecto2[1])
+                            self.suma(int(datos_arista['duracion']), datos_arista['distancia'])
+                            return trayecto2[0]
+                        else:
+                            if(trayecto2[0]!=origen and trayecto2[1]!=origen and trayecto2[0]!=origen1 and trayecto2[1]!=origen1 ):
+                                trayecto3=self.señalar_trayecto(trayecto2[1],origen1,final,final)
+                                if self.grafo.has_edge(origen1, trayecto3):
+                                    self.contenido(origen1,trayecto3)
+                                    datos_arista = self.grafo.get_edge_data(origen1,trayecto3)
+                                    self.suma(int(datos_arista['duracion']), datos_arista['distancia'])
+                                    return None
+                                else:
+                                    self.contenido(trayecto2[0],trayecto2[1])
+                                    datos_arista = self.grafo.get_edge_data(trayecto2[0],trayecto2[1])
+                                    self.suma(int(datos_arista['duracion']), datos_arista['distancia'])
+            self.contenido(trayecto[0],trayecto[1])
+            datos_arista = self.grafo.get_edge_data(trayecto[0],trayecto[1])
+            self.suma(int(datos_arista['duracion']), datos_arista['distancia'])
+        else:
+            self.contenido(origen, destino)
+            datos_arista = self.grafo.get_edge_data(origen, destino)
+            self.suma(int(datos_arista['duracion']), datos_arista['distancia'])
 
     def cerrar(self):#cierra el panel ademas de volver el aero puerto a su color original
         self.canvas.itemconfig(self.numero, fill=self.color_original)
         self.panel.destroy()
 
     def cerrar_trayecto(self):#cierra el panel ademas de volver el trayecto a su color original
-        self.canvas.itemconfig(self.numero, fill=self.color_original)
-        self.formulario.destroy()
+        for linea in self.lista_Cambiar:
+            self.canvas.itemconfig(linea, fill="black")
+            self.duracion=0
+            self.distancia=0
+            self.formulario.destroy()
+            
 
     def cambiar_color(self, x):
         x1=int(x-30)
@@ -154,17 +268,25 @@ class GUI:
                 self.numero=circulo
                 self.color_original = self.canvas.itemcget(circulo, "fill")
                 self.canvas.itemconfig(circulo, fill="red")
-    def cambiar_color_trayecto(self, x1,x2):
+    def cambiar_color_trayecto(self, x1,x2, y1,y2):
          for linea in self.lineas:
-            if (self.canvas.coords(linea)[0]==x1 and self.canvas.coords(linea)[2]==x2):
+            if (self.canvas.coords(linea)[0]==x1 and self.canvas.coords(linea)[2]==x2 and self.canvas.coords(linea)[1]==y1 and self.canvas.coords(linea)[3]==y2):
+                self.lista_Cambiar.append(linea)
                 self.numero=linea
                 self.color_original = self.canvas.itemcget(linea, "fill")
                 self.canvas.itemconfig(linea, fill="red")
-    
+                break
+            else:
+                 if (self.canvas.coords(linea)[0]==x2 and self.canvas.coords(linea)[2]==x1 and self.canvas.coords(linea)[1]==y2 and self.canvas.coords(linea)[3]==y1):
+                        self.lista_Cambiar.append(linea)
+                        self.numero=linea
+                        self.color_original = self.canvas.itemcget(linea, "fill")
+                        self.canvas.itemconfig(linea, fill="red")
+            
     def formulario_eliminar(self):#Formulario que aparece para elejir que aeropuerto que se va alterar
         self.formulario = Toplevel(self.ventana)
         self.formulario.title("Eliminar aeropuerto")
-        lista=self.lista_Nombres # lista de los nombres de las aero lineas
+        lista=self.lista_Nombres# lista de los nombres de las aero lineas
         
         letrero = Label(self.formulario, text="Seleccione el Aeropuerto")
         letrero.pack()
@@ -204,7 +326,6 @@ class GUI:
          
     def eliminar_aero(self):
         nombre = self.nombre_origen
-
         # Obtener la posición x del aeropuerto seleccionado
         x = self.grafo.nodes[nombre]['x']   # Reemplaza None con el valor correcto de la posición x
         # Eliminar las aristas relacionadas con el aeropuerto
@@ -219,34 +340,39 @@ class GUI:
             self.eliminar_circulos(x, nombre)
   
     
-    def eliminar_circulos(self, x, nombre):
-        x =int(x-30)
+    def eliminar_circulos(self, ubicacion, nombre):
+        x =int(ubicacion-30)
+        x1=ubicacion
         for circulo in self.circulos:
             if self.canvas.coords(circulo)[0] == x:
                 self.canvas.delete(circulo)
+                self.circulos.remove(circulo)
         
         for texto in self.Textos:
             if self.canvas.itemcget(texto, "text") == nombre:
                 self.canvas.delete(texto)
-        
+                self.Textos.remove(texto)
+        for linea in self.lineas:
+            if self.canvas.coords(linea)[0] == x1 or self.canvas.coords(linea)[2] == x1:
+                self.canvas.delete(linea)
+                self.lineas.remove(linea)
         self.formulario.destroy()
 
     def eliminar_lineas(self):
         origen = self.nombre_origen
         destino = self.nombre_destino
-        x1 = self.grafo.nodes[origen]['x'] 
-        x2 = self.grafo.nodes[destino]['x']  
+        x1 = int(self.grafo.nodes[origen]['x']) 
+        x2 = int(self.grafo.nodes[destino]['x'])  
         trayectos_eliminar = [(origen, destino) for destino in self.grafo.neighbors(origen)]
         # Eliminar el vértice correspondiente al aeropuerto
         self.grafo.remove_edges_from(trayectos_eliminar)
         for linea in self.lineas:
+            print(self.canvas.coords(linea)[0],x1,self.canvas.coords(linea)[2],x2)
             if self.canvas.coords(linea)[0] == x1 and self.canvas.coords(linea)[2] == x2:
                 self.canvas.delete(linea)
+                self.lineas.remove(linea)
         
         self.formulario.destroy()
-        
-                
-                
         
     def open_trayecto(self):# formulario de creacion de trayectos
         self.formulario = Toplevel(self.ventana)
@@ -257,7 +383,7 @@ class GUI:
         letrero.pack()
         
         opciones_origen = StringVar(self.formulario)
-        opciones_origen.set('Ninguno')
+        opciones_origen.set(lista[0])
         opcion_menu_origen = OptionMenu(self.formulario, opciones_origen, *lista, command=seleccionar_origen)  # menú de opciones de origen
         opcion_menu_origen.pack()  # primera opción
         
@@ -265,7 +391,7 @@ class GUI:
         letrero2.pack()
         
         opciones_destino = StringVar(self.formulario)
-        opciones_destino.set('Ninguno')  # primera opción
+        opciones_destino.set(lista[0])  # primera opción
     
         opcion_menu_destino = OptionMenu(self.formulario, opciones_destino, *lista, command=seleccionar_destino)# menu de opciones de destino
         opcion_menu_destino.pack()
@@ -286,8 +412,8 @@ class GUI:
     def add_trayecto(self):# es donde se comparan los datos a ver si son correctos
         origen=self.nombre_origen
         destino=self.nombre_destino
-        duracion = self.duracion.get()
-        distancia = self.duracion.get()
+        duracion = int(self.duracion.get())
+        distancia = int(self.duracion.get())
 
         if(origen==destino or duracion=='' or distancia==''):
             self.show_error_window("Llene el formulario correctamente")# abre la ventada de error con el mensaje que tiene dentro
@@ -295,7 +421,8 @@ class GUI:
             if self.grafo.has_edge(origen, destino):
                 self.show_error_window("Ya existe un trayecto entre los aeropuertos seleccionados")  # muestra error si el trayecto ya existe en el grafo
             else:
-                self.grafo.add_edge(origen, destino, duracion=duracion, distancia=distancia)  # agregar una arista entre los nodos de origen y destino en el grafo
+                duracion=int(duracion)
+                distancia= int(distancia)
                 self.crear_linea(origen, destino, duracion, distancia)
                 self.formulario.destroy()
     
@@ -362,18 +489,23 @@ class GUI:
         Text=self.canvas.create_text(x, y, text=name, fill="white")
         self.circulos.append(circulo)
         self.Textos.append(Text) # se añaden los datos del aeropuertoa a la lista contenido
-        self.grafo.add_node(name)# Crea el nodo con el aeropuerto
+        self.grafo.add_node(name)# primero se tenia que crear el nodo pa
         self.grafo.nodes[name]['x'] = x  # Guardar la posición X del aeropuerto en el atributo 'x' del nodo correspondiente en el grafo
         self.grafo.nodes[name]['y'] = y  # Guardar la posición Y del aeropuerto en el atributo 'y' del nodo correspondiente en el grafo
         self.lista_Nombres.append(name)
-    def crear_linea(self,origen, destino, duracion, distancia):# crea las lineas de trayecto
-
+    def crear_linea(self,origen, destino, duracion, distancia):
+        # crea las lineas de trayecto
+        if not isinstance(duracion, float) or not isinstance(distancia, float):
+            raise TypeError('La duración y la distancia deben ser datos numéricos de tipo Float')
         x = self.grafo.nodes[origen]['x']
         y = self.grafo.nodes[origen]['y']
         x2 = self.grafo.nodes[destino]['x']
         y2 = self.grafo.nodes[destino]['y']
         linea = self.canvas.create_line(x, y, x2, y2, fill="black")
-        self.grafo.add_edge(origen, destino, duracion=duracion, distancia=distancia)  # Agregar una arista entre los nodos de origen y destino en el grafo
+        x=int(duracion)
+        y=int(distancia)
+        self.grafo.add_edge(origen, destino, duracion=x, distancia=y)#Agregar una arista entre los nodos de origen y destino en el grafo
+        self.grafo.add_edge(destino, origen, duracion=x, distancia=y)
         self.lineas.append(linea)
         nombre_trayecto=origen+"-"+destino
         self.lista_Nombres_Trayectos.append(nombre_trayecto)
@@ -386,21 +518,10 @@ class GUI:
                 tamañox2 = self.grafo.nodes[node]['x'] - 30
                 tamañoy1 = self.grafo.nodes[node]['y'] + 30
                 tamañoy2 = self.grafo.nodes[node]['y'] - 30
-                if (tamañox1 >= x and tamañox2 <= x) or (tamañoy1 >= y and tamañoy2 <= y) or name == node:
+                if (tamañox1 >= x+30 and tamañox2 <= x-30) or (tamañoy1 >= y+30 and tamañoy2 <= y-30) or name == node:
                     self.show_error_window("Este aeropuerto ya existe o choca con otro aeropuerto")
                     existe = False
         return existe
-    
-    def actualizar_lienzo(self):
-        # Elimina 
-        self.canvas.delete("all")
-        for atributos in self.grafo.nodes.values:
-            x = atributos['x']
-            y = atributos['y']
-            color = "red" # Color predeterminado
-            nombre = atributos['nombre']
-            self.crear_circulo(x, y, color, nombre)
-
     def editar_aeropuerto(self):
 
         aeropuerto=self.nombre_origen
@@ -434,29 +555,26 @@ class GUI:
             y2=self.canvas.coords(linea)[3]
             print(self.canvas.coords(linea)[0],x1)
             print(self.canvas.coords(linea)[2],x2)
-            if(self.canvas.coords(linea)[0]==x0+30):
+            if(self.canvas.coords(linea)[0]==x0):
                 self.canvas.coords(linea,x+30,y+30,x2,y2)
                 self.formulario.destroy()
-            if(self.canvas.coords(linea)[2]==x0+30):
+            if(self.canvas.coords(linea)[2]==x0):
                 self.canvas.coords(linea,x3,y3,x+30,y+30)
                 self.formulario.destroy()
 
     def editar_trayecto(self):
         origen = self.nombre_origen
-
+        destino = self.nombre_destino
         # nuevo_destino = self.destino_entry.get()
         nueva_duracion = self.duracion.get()
         nueva_distancia = self.distancia.get()
 
-        if trayecto in self.grafo.edges:
-            self.grafo.edges[trayecto]['destino'] = nuevo_destino
-            self.grafo.edges[trayecto]['duracion'] = nueva_duracion
-            self.grafo.edges[trayecto]['distancia'] = nueva_distancia
-
-            for linea in self.lineas:
-                if self.canvas.itemcget(linea, "tags") == trayecto:
-                    self.canvas.itemconfigure(linea, tags=nuevo_destino)
-                    break
+        if self.grafo.has_edge(origen, destino):
+            datos_arista = self.grafo.get_edge_data(origen, destino)
+            datos_arista['duracion']==nueva_duracion
+            datos_arista['distancia']==nueva_distancia
+        else:
+            self.show_error_window("ruta no existe")
 
         self.formulario.destroy()
 
@@ -512,7 +630,7 @@ class GUI:
         pos_y_label.pack()
         self.distancia = Entry(self.formulario)#guarda la la distancia del trayecto
         self.distancia.pack()
-        submit_button = Button(self.formulario, text="Editar", command=self.editar_ruta)
+        submit_button = Button(self.formulario, text="Editar", command=self.editar_trayecto)
         submit_button.pack()
 
 
