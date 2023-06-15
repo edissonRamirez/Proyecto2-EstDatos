@@ -427,6 +427,18 @@ class GUI:
         y_entry = Entry(formulario)
         y_entry.pack()
 
+    
+    def editar_ruta(self, origen, destino, duracion, distancia):
+        
+        self.grafo.edges[origen, destino]['duracion'] = duracion
+        self.grafo.edges[origen, destino]['distancia'] = distancia
+
+        # Actualizar el lienzo gráfico
+        self.actualizar_lienzo()
+
+    def formulario_editar_aeropuerto(self):
+        formulario = Toplevel(self.ventana)
+
 
     
     # def formulario_editar_aeropuerto(self):
